@@ -6,184 +6,29 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
 model User {
-  id          Int     @id @default(autoincrement()) @map("id")
-  name        String? @db.VarChar(64)
-  email       String  @unique @db.VarChar(64)
-  password    String  @db.VarChar(128)
-  phoneNumber String? @map("phone_number") @db.VarChar(15)
-
-  address  String? @db.VarChar(128)
-  locate   String? @db.VarChar(16)
-  gender   Int     @default(0) @db.SmallInt
-  status   Int     @default(0) @db.SmallInt // IN_ACTIVE(0), ACTIVE(1)
-  typeUser Int     @default(0) @db.SmallInt // DEFAULT(0), ADMIN(1)
-
-  authData  String? // @map("auth_data")
-  authValue String? // @map("auth_value")
-  language  String? @db.VarChar(8)
-  dataSave  String? // @map("data_save") @db.LongText
-
-  updatedAt DateTime @updatedAt // @map("update_at")
-  createdAt DateTime @default(now()) // @map("created_at")
-
-  refreshToken String?
-
-  token           UserToken[]
-  device          Device[]
-  TokenUser       TokenUser[]
-  Gateway         Gateway[]
-  Store           Store[]
-  UserPermGateway UserPermGateway[]
-
-  @@map("user")
+  id        Int         @id @default(autoincrement())
+  name      String?
+  UserGroup UserGroup[]
 }
 
-model UserToken {
-  id     Int    @id @default(autoincrement())
-  userId Int
-  token  String @unique
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+model Group {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  UserGroup UserGroup[]
 }
 
-model Device {
-  id           Int    @id @default(autoincrement())
-  userId       Int
-  name         String
-  deviceCode   String @unique
-  key          String
-  extendedData Json?
+model UserGroup {
+  userId  Int
+  groupId Int
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
-// --- NEW -- 
-model Permission {
-  id          Int    @id @default(autoincrement())
-  name        String @db.VarChar(128)
-  description String @db.VarChar(256)
-
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-
-  roles           RolePermission[]
-  UserPermGateway UserPermGateway[]
-}
-
-model Role {
-  id          Int    @id @default(autoincrement())
-  name        String @db.VarChar(128)
-  description String @db.VarChar(256)
-
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-
-  permissions RolePermission[]
-}
-
-model RolePermission {
-  roleId       Int
-  permissionId Int
-  role         Role       @relation(fields: [roleId], references: [id])
-  permission   Permission @relation(fields: [permissionId], references: [id])
-
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now()) 
-
-  @@id([roleId, permissionId])
-  @@map("role_permission")
-}
-
-model TokenUser {
-  id        Int      @id @default(autoincrement())
-  refId     String   @unique @db.VarChar(32)
-  status    Int      @db.SmallInt // ACTIVE(0), INACTIVE(1), ISSUE(2)
-  userId    Int
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id])
-}
-
-model Gateway {
-  id               Int    @id @default(autoincrement())
-  name             String @db.VarChar(64)
-  cloudKey         String @db.VarChar(128)
-  targetKey        String @db.VarChar(128)
-  targetRefId      String @db.VarChar(64) // updateable = false
-  targetURI        String @db.VarChar(64)
-  targetApiVersion String @db.VarChar(16) // updateable = false
-  publicTargetURI  String @db.VarChar(64)
-  locate           String @db.VarChar(16)
-  status           Int    @default(0) @db.SmallInt // IN_ACTIVE(0), ACTIVE(1)
-  userId           Int
-  storeId          Int
-  extendedData     Json?
-  deviceCode       String @unique
-  key              String
-
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-
-  user            User              @relation(fields: [userId], references: [id]) // , onDelete: Cascade
-  store           Store             @relation(fields: [storeId], references: [id])
-  EventData       EventData[]
-  UserPermGateway UserPermGateway[]
-}
-
-model Store {
-  id              Int    @id @default(autoincrement())
-  name            String @db.VarChar(64)
-  description     String @db.VarChar(128)
-  backgroundColor String @db.VarChar(16)
-  userId          Int
-
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-
-  user    User      @relation(fields: [userId], references: [id])
-  Gateway Gateway[]
-}
-
-model EventData {
-  id        Int      @id @default(autoincrement())
-  type      String   @db.VarChar(32)
-  tags      String   @db.VarChar(128)
-  monitorId String   @db.VarChar(64)
-  extras    String?  @db.LongText
-  cropIds   String?
-  imageId   String?
-  videoId   String?
-  eventTime DateTime // updateable=false
-  gatewayId Int
-
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now()) // updateable=false
-
-  // Readonly
-  eventValue Int?
-  refStoreId Int?
-
-  gateway Gateway @relation(fields: [gatewayId], references: [id])
-}
-
-model UserPermGateway {
-  userId       Int
-  gatewayId    Int
-  permissionId Int
-
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
-
-  user       User       @relation(fields: [userId], references: [id])
-  gateway    Gateway    @relation(fields: [gatewayId], references: [id])
-  permission Permission @relation(fields: [permissionId], references: [id])
-
-  @@id([userId, gatewayId, permissionId])
-  @@map("user_perm_gateway")
+  @@id([userId, groupId])
 }
