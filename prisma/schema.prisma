@@ -32,3 +32,21 @@ model UserGroup {
 
   @@id([userId, groupId])
 }
+
+model QueueDataModel {
+  id        BigInt @id @default(autoincrement())
+  name      String
+  value     Json?
+  status    Int    @default(0) @db.TinyInt
+  valueType String @default("string") @db.VarChar(12) // string, number, boolean, enum
+  queryId   BigInt @default(0)
+
+  sourceId   Int? // userId, clientId, system
+  sourceType Int     @default(0) @db.SmallInt
+  sourceInfo String? @db.VarChar(16)
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@index([name])
+}

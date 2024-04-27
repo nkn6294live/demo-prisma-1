@@ -11,44 +11,33 @@ prisma.$on("query", e => {
     // console.log(`prisma:query:duration: ${e.duration}ms`)
 });
 
+const { QueueDataModel } = require('./queue_data_model')
+
 async function main() {
-
-    // let group = await prisma.group.upsert({
-    //     where: {
-    //         id: 1
-    //     },
-    //     update: {
-    //         name: `Group 1`
-    //     },
-    //     create: {
-    //         id: 1,
-    //         name: "Group 1"
-    //     },
-    // })
-    // console.log(JSON.stringify(group))
-
-    // let user = await prisma.user.create({
-    //     data: {
-    //         name: `User ${Date.now()}`,
-    //         UserGroup: {
-    //             create: {
-    //                 groupId: group.id
-    //             }
-    //         }
-    //     },
-
-    // })
-    // console.log(JSON.stringify(user))
-
+    let queueDataModel = new QueueDataModel(prisma, prisma);
     try {
-        let result = await prisma.user.count({
-            where: {
-                id: {
-                    gte: 6
-                }
-            }
-        })
-        console.log(result)
+        // let result = await prisma.user.count({
+        //     where: {
+        //         id: {
+        //             gt: 7,
+        //         },
+        //     },
+        //     skip: 1, take: 10
+        // })
+        // console.log(result)
+        // result = await prisma.user.findFirst({
+        //     where: {
+        //         id: 0
+        //     }
+        // })
+        // console.log(result);
+        let queueName = "testQueue1"
+        await queueDataModel.enqueues(queueName, [{ value: 1 }, { value: 2 }])
+        // await queueDataModel.clean(queueName)
+        let length = await queueDataModel.length(queueName)
+        console.log(length);
+        let isEmpty = await queueDataModel.isEmpty(queueName);
+        console.log(isEmpty)
     } catch (error) {
         console.warn(error?.message)
     }
