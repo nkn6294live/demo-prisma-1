@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model User {
+  id        Int         @id @default(autoincrement())
+  name      String?
+  UserGroup UserGroup[]
+}
+
+model Group {
+  id        Int         @id @default(autoincrement())
+  name      String      @unique
+  UserGroup UserGroup[]
+}
+
+model UserGroup {
+  userId  Int
+  groupId Int
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([userId, groupId])
+}
+
+model QueueDataModel {
+  id        BigInt @id @default(autoincrement())
+  name      String
+  value     Json?
+  status    Int    @default(0) @db.TinyInt
+  valueType String @default("string") @db.VarChar(12) // string, number, boolean, enum
+  queryId   BigInt @default(0)
+
+  sourceId   Int? // userId, clientId, system
+  sourceType Int     @default(0) @db.SmallInt
+  sourceInfo String? @db.VarChar(16)
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  @@index([name])
+}

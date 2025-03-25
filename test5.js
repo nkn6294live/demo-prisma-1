@@ -1,7 +1,9 @@
-const { db, log, disconnect } = require('./common')
+const { db, log, disconnect, processError } = require('./common')
 
 async function main() {
-
+    await (async () => {
+        let data = await db.user.findRaw
+    })()
     // let currentId
     // await (async () => {
     //     let userModel = { name: Date.now().toString(16) }
@@ -39,10 +41,32 @@ async function main() {
     //     console.log(JSON.stringify(data))
     // })()
 
-    await (async () => {
-        let data = await db.user.findFirst({ take: -1 })
-        console.log(`${JSON.stringify(data)}`)
-    })()
+    // await (async () => {
+    // let data = await db.user.findFirst({ take: -1 })
+    // let data = await Promise.all([0].map(item => db.user.upsert({
+    //     where: {
+    //         id: 23
+    //     },
+    //     create: {
+    //         id: 23,
+    //         name: Date.now().toString(16)
+    //     },
+    //     update: {
+    //         count: {
+    //             increment: 1
+    //         }
+    //     }
+    // })))
+    // let data
+    // try {
+    //     data = await db.user.create({ data: { id: 23, name: Date.now.toString(16) } })
+    // } catch (error) {
+    //     processError(error)
+    //     console.error(`error: ${error?.message}`)
+    //     data = error?.message
+    // }
+    // console.log(`${JSON.stringify(data)}`)
+    // })()
 
     // await db.$transaction(async (tx) => {
     //     await tx.user.update({
